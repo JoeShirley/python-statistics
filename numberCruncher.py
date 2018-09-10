@@ -11,16 +11,19 @@ class stats():
         self.start()
 
     def testInt(self, value):
-        test = list(str(value))
-        searchfor = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-        if test[0] == '-':
-            start = 1
+        if value:
+            test = list(str(value))
+            searchfor = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+            if test[0] == '-' and len(test) > 1:
+                start = 1
+            else:
+                start = 0
+            for i in range(start, len(test), 1):
+                if not test[i] in searchfor:
+                    return False
+            return True
         else:
-            start = 0
-        for i in range(start, len(test), 1):
-            if not test[i] in searchfor:
-                return False
-        return True
+            return False
 
     def start(self):
         print "Input your numerical data here, press Control-C when finished"
@@ -115,9 +118,10 @@ class stats():
         for x, y in self.counter().items():
             print "%s: %s" % (x, y)
 
-
-s = stats()
-commands = ['help', 'show', 'restart', 'exit']
+current_table = 'one'
+table_list = ['one']
+globals()[current_table] = stats()
+commands = ['help', 'show', 'refresh', 'exit', 'table']
 values = ['rel_frequency', 'frequency', 'mode', 'median', 'mean', 'range', 'variance', 'std_dev']
 
 
@@ -125,42 +129,57 @@ def help():
     print "Valid commands are:"
     print "help: display this prompt"
     print "show <value>: shows a value associated with your data"
-    print "restart: enter a new list"
+    print "refresh: change that data in the table"
+    print "table <name>: select a different table to view or make a new one"
     print "exit: quit the prompt"
 
 
 def restart():
-    s.start()
+    globals()[current_table].start()
 
 
 def show(thing):
+    global current_table
     if thing in values:
         if thing == 'rel_frequency':
             print ""
-            s.show_rel_frequency()
+            vars()[current_table].show_rel_frequency()
             print""
         elif thing == 'frequency':
             print ""
-            s.show_counter()
+            vars()[current_table].show_counter()
             print ""
         elif thing == 'mode':
-            print '\n' + str(s.mode) + '\n'
+            print '\n' + str(globals()[current_table].mode) + '\n'
         elif thing == 'median':
-            print '\n' + str(s.med) + '\n'
+            print '\n' + str(globals()[current_table].med) + '\n'
         elif thing == 'mean':
-            print '\n' + str(s.mean) + '\n'
+            print '\n' + str(globals()[current_table].mean) + '\n'
         elif thing == 'range':
-            print '\n' + str(s.range) + '\n'
+            print '\n' + str(globals()[current_table].range) + '\n'
         elif thing == 'variance':
-            print '\n' + str(s.vari) + '\n'
+            print '\n' + str(globals()[current_table].vari) + '\n'
         elif thing == 'std_dev':
-            print '\n' + str(s.std_dev) + '\n'
+            print '\n' + str(globals()[current_table].std_dev) + '\n'
         else:
             print "Invalid! Valid options are:"
             for item in values: print "\t%s" % item
     else:
         print "Valid options are:"
         for item in values: print "\t%s" % item
+
+
+def table(arg):
+    global current_table
+    if arg in table_list:
+        print "Switching to table %s" % arg
+        current_table = arg
+    else:
+        print "Table %s does not exist, creating a new one of that name" % arg
+        table_list.append(arg)
+        current_table = arg
+        globals()[current_table] = stats()
+
 try:
     print "\nHere is an interactive prompt so that you can learn about your data"
     print "Try using the help command to see what you can do\n"
@@ -179,11 +198,17 @@ try:
                     print "Valid values are:"
                     for item in values: print "\t%s" % item
 
-            elif command[0] == "restart":
+            elif command[0] == "refresh":
                 restart()
             elif command[0] == 'exit':
                 print "All done, have a nice day"
                 sys.exit(0)
+            elif command[0] == 'table':
+                try:
+                    table(command[1])
+                except IndexError:
+                    print "Valid tables are:"
+                    for i in table_list: print "\t%s" % i
             else:
                 print "Invalid command\n"
                 help()
