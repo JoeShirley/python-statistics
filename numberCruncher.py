@@ -8,6 +8,8 @@ class stats():
         self.mode = 0
         self.med = 0
         self.range = 0
+        self.grouped = False
+        self.num_groups = 0
         self.start()
 
     def testInt(self, value):
@@ -27,51 +29,82 @@ class stats():
 
     def start(self):
         print "Input your numerical data here, press Control-C when finished"
+        print "Split two numbers with a : to add a frequency. e.x. 3:12 would add 12 threes"
+        g = raw_input("Do you want to group the data (y/n)? ").lower()
+        while not (g == 'y' or g == 'n'):
+            g = raw_input("Invalid! select 'y' or 'n'").lower()
+        if g == 'y':
+            self.grouped = True
+            num = raw_input("How many groups (enter a whole number)? ")
+            while not num.isdigit():
+                num = raw_input("Enter a whole number: ")
+            self.num_groups = str(num)
+        else:
+            self.grouped = False
         try:
             while 1:
                 new = raw_input("Enter a number: ")
-                if self.testInt(new):
+                if ':' in new:
+                    arg1, arg2 = new.split(':')
+                    if self.testInt(arg1) and arg2.isdigit():
+                        for i in range(int(arg2)):
+                            self.items.append(int(arg1))
+                elif self.testInt(new):
                     self.items.append(int(new))
         except KeyboardInterrupt:
-            print "\nFinished getting data, starting main loop\n"
+            print "\nFinished getting data\n"
 
         pop_sam = raw_input("Is this population or sample data? (pop/sam)").lower()
         while not (pop_sam == "sam" or pop_sam == "pop"):
             pop_sam = raw_input("Invalid! Input 'pop' for population or 'sam' for sample: ").lower()
         self.type = pop_sam
         self.items.sort()
-
-        total = 0
-        for item in self.items:
-            total += item
-        self.mean = (float(total) / len(self.items))
-
-        i = len(self.items) / 2
-        if len(self.items) % 2:
-            self.med = self.items[i]
-        else:
-            self.med = (self.items[i] + self.items[(i - 1)]) / 2.0
-
-        mode_stuff = self.counter()
-        modes = []
-        biggest = 0
-        for x, y in mode_stuff.items():
-            if y > biggest:
-                modes[:] = []
-                modes.append(x)
-                biggest = y
-            elif y == biggest:
-                modes.append(x)
-            else:
-                pass
-        m = ""
-        for item in modes:
-            m += "%s," % item
-        self.mode = m.rstrip(',')
         self.range = self.items[-1] - self.items[0]
+        if self.grouped:
+            split = int((int(self.range) / float(self.num_groups)) + 0.5)
+            min = self.items[0]
+            self.groups = {}
+            bottom_val = min
+            for i in range(0,int(self.num_groups),1):
+                top_val = bottom_val + split - 1
+                group = "%d-%d" % (bottom_val, top_val)
+                self.groups[group] = 0
+                for item in self.items:
+                    if bottom_val <= item <= top_val:
+                        self.groups[group] += 1
+                bottom_val += split
 
-        self.vari = self.variance()
-        self.std_dev = self.standard_dev()
+        else:
+            total = 0
+            for item in self.items:
+                total += item
+            self.mean = (float(total) / len(self.items))
+
+            i = len(self.items) / 2
+            if len(self.items) % 2:
+                self.med = self.items[i]
+            else:
+                self.med = (self.items[i] + self.items[(i - 1)]) / 2.0
+
+            mode_stuff = self.counter()
+            modes = []
+            biggest = 0
+            for x, y in mode_stuff.items():
+                if y > biggest:
+                    modes[:] = []
+                    modes.append(x)
+                    biggest = y
+                elif y == biggest:
+                    modes.append(x)
+                else:
+                    pass
+            m = ""
+            for item in modes:
+                m += "%s," % item
+            self.mode = m.rstrip(',')
+
+            self.vari = self.variance()
+            self.std_dev = self.standard_dev()
 
     def standard_dev(self):
         return float(self.variance()) ** 0.5
@@ -115,8 +148,13 @@ class stats():
             print "%s: %s" % (x, y)
 
     def show_counter(self):
-        for x, y in self.counter().items():
-            print "%s: %s" % (x, y)
+        if self.grouped:
+            for x, y in self.groups.items():
+                print "%s: %s" % (x, y)
+        else:
+            for x, y in self.counter().items():
+                print "%s: %s" % (x, y)
+
 
 current_table = 'one'
 table_list = ['one']
@@ -129,7 +167,7 @@ def help():
     print "Valid commands are:"
     print "help: display this prompt"
     print "show <value>: shows a value associated with your data"
-    print "refresh: change that data in the table"
+    print "refresh: change the data in the table"
     print "table <name>: select a different table to view or make a new one"
     print "exit: quit the prompt"
 
@@ -143,11 +181,11 @@ def show(thing):
     if thing in values:
         if thing == 'rel_frequency':
             print ""
-            vars()[current_table].show_rel_frequency()
+            globals()[current_table].show_rel_frequency()
             print""
         elif thing == 'frequency':
             print ""
-            vars()[current_table].show_counter()
+            globals()[current_table].show_counter()
             print ""
         elif thing == 'mode':
             print '\n' + str(globals()[current_table].mode) + '\n'
