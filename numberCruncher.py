@@ -79,12 +79,8 @@ class stats():
             for item in self.items:
                 total += item
             self.mean = (float(total) / len(self.items))
+            self.med = self.median()
 
-            i = len(self.items) / 2
-            if len(self.items) % 2:
-                self.med = self.items[i]
-            else:
-                self.med = (self.items[i] + self.items[(i - 1)]) / 2.0
 
             mode_stuff = self.counter()
             modes = []
@@ -105,6 +101,14 @@ class stats():
 
             self.vari = self.variance()
             self.std_dev = self.standard_dev()
+
+    def median(self):
+        data = self.items
+        i = (len(data) / 2)
+        if len(data) % 2:
+            return data[i]
+        else:
+            return (data[i] + data[(i - 1)]) / 2.0
 
     def standard_dev(self):
         return float(self.variance()) ** 0.5
@@ -155,12 +159,18 @@ class stats():
             for x, y in self.counter().items():
                 print "%s: %s" % (x, y)
 
+    def show_raw(self):
+        i = 0
+        for item in self.items:
+            i += 1
+            print "Index %d: %d" % (i, item)
+
 
 current_table = 'one'
 table_list = ['one']
 globals()[current_table] = stats()
 commands = ['help', 'show', 'refresh', 'exit', 'table']
-values = ['rel_frequency', 'frequency', 'mode', 'median', 'mean', 'range', 'variance', 'std_dev']
+values = ['rel_frequency', 'frequency', 'mode', 'median', 'mean', 'range', 'variance', 'std_dev', 'raw']
 
 
 def help():
@@ -186,6 +196,10 @@ def show(thing):
         elif thing == 'frequency':
             print ""
             globals()[current_table].show_counter()
+            print ""
+        elif thing == 'raw':
+            print ""
+            globals()[current_table].show_raw()
             print ""
         elif thing == 'mode':
             print '\n' + str(globals()[current_table].mode) + '\n'
