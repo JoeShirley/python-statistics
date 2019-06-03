@@ -13,3 +13,5 @@ for item in items:
 for item in items:
     div = item / float(total)
     print str(div) + '\n'
+
+print "Done"
