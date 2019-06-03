@@ -14,4 +14,4 @@ for item in items:
     div = item / float(total)
     print str(div) + '\n'
 
-print "Done"
+print "Done printing relative frequencies"
